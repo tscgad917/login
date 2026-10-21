@@ -21,6 +21,14 @@
 <button id="resetBtn" type="button" style="margin-top:10px;background:#fff;color:#17613a;border:1px solid #d5e2d5">忘記密碼／寄送重設連結</button>
 <div id="authMessage" style="margin-top:14px;font-size:13px;line-height:1.7;color:#52665a;white-space:pre-wrap"></div>
 </form>
+<section id="resetPasswordView" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid #e2e9e3">
+<h2 style="font-size:19px;color:#174c2d">設定新密碼</h2>
+<p>請輸入新密碼，至少 8 個字元。</p>
+<label for="recoveryPassword">新密碼</label><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8">
+<label for="recoveryPassword2">再次輸入新密碼</label><input id="recoveryPassword2" type="password" autocomplete="new-password" minlength="8">
+<button id="saveRecoveryPassword" type="button">儲存新密碼</button>
+<div id="recoveryMessage" style="margin-top:12px;font-size:13px;white-space:pre-wrap"></div>
+</section>
 <div class="notice">本管理中心僅供總務課授權管理人員使用，登入後可切換庫存盤點、傳票耗材、紙張需求及活動報名管理。</div>
 </section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -67,6 +75,30 @@ $("signupBtn").addEventListener("click",async()=>{
   showMessage("帳號申請已送出。若系統要求信箱確認，請先開啟收到的確認信，再回到本頁登入。只有已列入管理人員名單的信箱才能進入後台。");
  }catch(error){console.error(error);showMessage("建立帳號失敗："+(error.message||String(error)),true);}
  finally{$("signupBtn").disabled=false;}
+});
+window.addEventListener("load",async()=>{
+ if(!window.location.hash.includes("type=recovery"))return;
+ try{
+  const r=await authClient.auth.getSession();
+  if(r.error)throw r.error;
+  if(!r.data.session)throw new Error("重設連結已失效，請重新寄送密碼重設信。");
+  $("loginForm").style.display="none";
+  $("resetPasswordView").style.display="block";
+ }catch(e){showMessage(e.message||String(e),true);}
+});
+$("saveRecoveryPassword").addEventListener("click",async()=>{
+ const p=$("recoveryPassword").value,p2=$("recoveryPassword2").value;
+ const out=$("recoveryMessage");
+ if(p.length<8){out.textContent="新密碼至少需要 8 個字元。";out.style.color="#b91c1c";return;}
+ if(p!==p2){out.textContent="兩次輸入的密碼不一致。";out.style.color="#b91c1c";return;}
+ $("saveRecoveryPassword").disabled=true;
+ try{
+  const r=await authClient.auth.updateUser({password:p});if(r.error)throw r.error;
+  await authClient.auth.signOut();
+  out.textContent="密碼已更新，正在返回登入頁面……";out.style.color="#166534";
+  setTimeout(()=>window.location.replace("https://tscgad917.github.io/login/"),1200);
+ }catch(e){out.textContent="密碼更新失敗："+(e.message||String(e));out.style.color="#b91c1c";}
+ finally{$("saveRecoveryPassword").disabled=false;}
 });
 $("resetBtn").addEventListener("click",async()=>{
  const email=$("email").value.trim().toLowerCase();
