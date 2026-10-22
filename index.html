@@ -17,7 +17,7 @@
 <label for="email">Email</label><input id="email" type="email" autocomplete="username" placeholder="請輸入管理帳號" required>
 <label for="password">密碼</label><input id="password" type="password" autocomplete="current-password" placeholder="請輸入密碼" required>
 <button type="submit">登入管理中心</button>
-<button id="signupBtn" type="button" style="margin-top:10px;background:#edf5ef;color:#17613a;border:1px solid #d5e2d5">尚未取得帳號？請洽最高管理員</button>
+<div id="signupNotice" style="display:none;margin-top:8px;color:#b91c1c;font-size:13px;line-height:1.7">管理帳號由最高管理員建立。請聯絡總務課最高管理員開通帳號，不需自行註冊</div>
 <button id="resetBtn" type="button" style="margin-top:10px;background:#fff;color:#17613a;border:1px solid #d5e2d5">忘記密碼／寄送重設連結</button>
 <div id="authMessage" style="margin-top:14px;font-size:13px;line-height:1.7;color:#52665a;white-space:pre-wrap"></div>
 </form>
@@ -66,8 +66,8 @@ $("loginForm").addEventListener("submit",async event=>{
  try{const {data,error}=await authClient.auth.signInWithPassword({email,password});if(error)throw error;await finishLogin(data,email);}
  catch(error){console.error("登入失敗：",error);showMessage("登入失敗："+(error&&error.message?error.message:"請確認帳號、密碼及授權狀態。"),true);}
 });
-$("signupBtn").addEventListener("click",()=>{
- showMessage("管理帳號由最高管理員建立。請聯絡總務課最高管理員開通帳號，不需自行註冊或驗證邀請信。",true);
+$("email").addEventListener("input",()=>{
+ $("signupNotice").style.display=$("email").value.trim()?"block":"none";
 });
 $("resetBtn").addEventListener("click",async()=>{
  const email=$("email").value.trim().toLowerCase();
