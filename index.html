@@ -53,6 +53,10 @@ async function finishLogin(data,email){
  localStorage.setItem("admin_refresh_token",data.session.refresh_token);
  localStorage.setItem("admin_email",actual);
  localStorage.setItem("admin_role",auth.role);
+ if(data.user.user_metadata&&data.user.user_metadata.must_change_password===true){
+  window.location.href="https://tscgad917.github.io/inventory-system/force-change-password.html";
+  return;
+ }
  window.location.href="https://tscgad917.github.io/inventory-system/admin-center.html";
 }
 $("loginForm").addEventListener("submit",async event=>{
