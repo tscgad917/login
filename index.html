@@ -17,7 +17,7 @@
 <label for="email">Email</label><input id="email" type="email" autocomplete="username" placeholder="請輸入管理帳號" required>
 <label for="password">密碼</label><input id="password" type="password" autocomplete="current-password" placeholder="請輸入密碼" required>
 <button type="submit">登入管理中心</button>
-<button id="signupBtn" type="button" style="margin-top:10px;background:#edf5ef;color:#17613a;border:1px solid #d5e2d5">首次使用｜建立個人帳號</button>
+<button id="signupBtn" type="button" style="margin-top:10px;background:#edf5ef;color:#17613a;border:1px solid #d5e2d5">尚未取得帳號？請洽最高管理員</button>
 <button id="resetBtn" type="button" style="margin-top:10px;background:#fff;color:#17613a;border:1px solid #d5e2d5">忘記密碼／寄送重設連結</button>
 <div id="authMessage" style="margin-top:14px;font-size:13px;line-height:1.7;color:#52665a;white-space:pre-wrap"></div>
 </form>
@@ -66,43 +66,8 @@ $("loginForm").addEventListener("submit",async event=>{
  try{const {data,error}=await authClient.auth.signInWithPassword({email,password});if(error)throw error;await finishLogin(data,email);}
  catch(error){console.error("登入失敗：",error);showMessage("登入失敗："+(error&&error.message?error.message:"請確認帳號、密碼及授權狀態。"),true);}
 });
-$("signupBtn").addEventListener("click",async()=>{
- const email=$("email").value.trim().toLowerCase(),password=$("password").value;
- if(!email||!password){showMessage("請先輸入管理員已核准的 Email 及自行設定的密碼。",true);return;}
- if(password.length<8){showMessage("密碼至少需要 8 個字元。",true);return;}
- if(!confirm("將以 "+email+" 建立個人登入帳號。請確認最高管理員已先在管理人員名單中新增此信箱。"))return;
- $("signupBtn").disabled=true;showMessage("正在建立個人帳號……");
- try{
-  const {data,error}=await authClient.auth.signUp({email,password,options:{emailRedirectTo:"https://tscgad917.github.io/login/"}});
-  if(error)throw error;
-  if(data.session&&data.user){await finishLogin(data,email);return;}
-  showMessage("帳號申請已送出。若系統要求信箱確認，請先開啟收到的確認信，再回到本頁登入。只有已列入管理人員名單的信箱才能進入後台。");
- }catch(error){console.error(error);showMessage("建立帳號失敗："+(error.message||String(error)),true);}
- finally{$("signupBtn").disabled=false;}
-});
-window.addEventListener("load",async()=>{
- if(!window.location.hash.includes("type=recovery"))return;
- try{
-  const r=await authClient.auth.getSession();
-  if(r.error)throw r.error;
-  if(!r.data.session)throw new Error("重設連結已失效，請重新寄送密碼重設信。");
-  $("loginForm").style.display="none";
-  $("resetPasswordView").style.display="block";
- }catch(e){showMessage(e.message||String(e),true);}
-});
-$("saveRecoveryPassword").addEventListener("click",async()=>{
- const p=$("recoveryPassword").value,p2=$("recoveryPassword2").value;
- const out=$("recoveryMessage");
- if(p.length<8){out.textContent="新密碼至少需要 8 個字元。";out.style.color="#b91c1c";return;}
- if(p!==p2){out.textContent="兩次輸入的密碼不一致。";out.style.color="#b91c1c";return;}
- $("saveRecoveryPassword").disabled=true;
- try{
-  const r=await authClient.auth.updateUser({password:p});if(r.error)throw r.error;
-  await authClient.auth.signOut();
-  out.textContent="密碼已更新，正在返回登入頁面……";out.style.color="#166534";
-  setTimeout(()=>window.location.replace("https://tscgad917.github.io/login/"),1200);
- }catch(e){out.textContent="密碼更新失敗："+(e.message||String(e));out.style.color="#b91c1c";}
- finally{$("saveRecoveryPassword").disabled=false;}
+$("signupBtn").addEventListener("click",()=>{
+ showMessage("管理帳號由最高管理員建立。請聯絡總務課最高管理員開通帳號，不需自行註冊或驗證邀請信。",true);
 });
 $("resetBtn").addEventListener("click",async()=>{
  const email=$("email").value.trim().toLowerCase();
