@@ -64,10 +64,19 @@ $("loginForm").addEventListener("submit",async event=>{
  const email=$("email").value.trim().toLowerCase(),password=$("password").value;
  showMessage("正在驗證帳號……");
  try{const {data,error}=await authClient.auth.signInWithPassword({email,password});if(error)throw error;await finishLogin(data,email);}
- catch(error){console.error("登入失敗：",error);showMessage("登入失敗："+(error&&error.message?error.message:"請確認帳號、密碼及授權狀態。"),true);}
-});
-$("email").addEventListener("input",()=>{
- $("signupNotice").style.display=$("email").value.trim()?"block":"none";
+ catch(error){
+  console.error("登入失敗：",error);
+  try{
+   const auth=await authorizedUser(email);
+   if(!auth){
+    showMessage("管理帳號由最高管理員建立。請聯絡總務課最高管理員開通帳號，不需自行註冊",true);
+    return;
+   }
+  }catch(checkError){
+   console.error("確認管理員授權失敗：",checkError);
+  }
+  showMessage("登入失敗："+(error&&error.message?error.message:"請確認帳號、密碼及授權狀態。"),true);
+ }
 });
 $("resetBtn").addEventListener("click",async()=>{
  const email=$("email").value.trim().toLowerCase();
